@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المعلم</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 { color: #f5576c; font-size: 1.8em; }
+        .btn {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-view {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .btn-toggle {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            padding: 6px 12px;
+            font-size: 13px;
+            margin: 5px;
+        }
+        .btn-toggle.uncheck {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #f5576c;
+        }
+        .stat-label { color: #666; margin-top: 5px; }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .student-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 30px auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 1100px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover { color: black; }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .tab {
+            background: #f8f9fa;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #dee2e6;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            border-color: #f5576c;
+        }
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .page-item {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            border-radius: 6px;
+            border: 2px solid #dee2e6;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .page-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        .page-item.memorized {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            color: #28a745;
+        }
+        .surah-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .surah-item-modal {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .surah-item-modal.memorized {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+        }
+        .surah-item-modal:hover {
+            transform: scale(1.02);
+        }
+        .juz-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .juz-item-modal {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .juz-item-modal.completed {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+        }
+        .juz-item-modal:hover {
+            transform: scale(1.05);
+        }
+        .hidden { display: none; }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="welcomeText">👨‍🏫 لوحة المعلم</h1>
+        <button class="btn" onclick="logout()">تسجيل الخروج 🚪</button>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number" id="totalStudents">0</div>
+            <div class="stat-label">إجمالي الطلاب</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="completedHifz">0</div>
+            <div class="stat-label">أتموا الحفظ</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="averageProgress">0%</div>
+            <div class="stat-label">متوسط التقدم</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="totalHalaqas">0</div>
+            <div class="stat-label">عدد الحلقات</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>إضافة حلقة جديدة</h2>
+        <form id="halaqaForm">
+            <div class="form-group">
+                <label>اسم الحلقة:</label>
+                <input type="text" id="halaqaName" required>
+            </div>
+            <button type="submit" class="btn">إضافة الحلقة</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>إضافة طالب جديد</h2>
+        <form id="studentForm">
+            <div class="form-group">
+                <label>اسم الطالب:</label>
+                <input type="text" id="studentName" required>
+            </div>
+            <div class="form-group">
+                <label>العمر:</label>
+                <input type="number" id="studentAge" min="5" max="100" required>
+            </div>
+            <div class="form-group">
+                <label>الحلقة:</label>
+                <select id="studentHalaqa" required>
+                    <option value="">اختر الحلقة</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">إضافة الطالب</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>قائمة الطلاب</h2>
+        <div class="loading" id="loading">جاري التحميل...</div>
+        <div class="student-grid" id="studentsList"></div>
+    </div>
+</div>
+
+<!-- Modal لعرض تفاصيل الطالب -->
+<div id="studentModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalStudentName"></h2>
+        <p id="modalStudentInfo"></p>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchModalTab('pages')">الصفحات</div>
+            <div class="tab" onclick="switchModalTab('surahs')">السور</div>
+            <div class="tab" onclick="switchModalTab('juzs')">الأجزاء</div>
+        </div>
+        
+        <!-- الصفحات -->
+        <div id="modalPagesTab">
+            <h3>الصفحات (<span id="modalPagesCount">0</span>/604)</h3>
+            <div class="pages-grid" id="modalPagesList"></div>
+        </div>
+        
+        <!-- السور -->
+        <div id="modalSurahsTab" class="hidden">
+            <h3>السور (<span id="modalSurahCount">0</span>/114)</h3>
+            <div class="surah-list" id="modalSurahList"></div>
+        </div>
+        
+        <!-- الأجزاء -->
+        <div id="modalJuzsTab" class="hidden">
+            <h3>الأجزاء (<span id="modalJuzCount">0</span>/30)</h3>
+            <div class="juz-list" id="modalJuzList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// تحديد API URL تلقائياً حسب البيئة
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
+let token = localStorage.getItem('token');
+let currentViewingStudent = null;
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    
+    if (!token || !user || user.role !== 'teacher') {
+        alert('الرجاء تسجيل الدخول كمعلم');
+        window.location.href = 'teacher-login.html';
+        return;
+    }
+    
+    document.getElementById('welcomeText').textContent = `مرحباً ${user.name} 👨‍🏫`;
+    
+    await loadData();
+});
+
+async function loadData() {
+    await loadHalaqas();
+    await loadStudents();
+    await loadStatistics();
+}
+
+async function loadHalaqas() {
+    try {
+        const res = await fetch(`${API}/halaqas`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const halaqas = await res.json();
+        
+        const select = document.getElementById('studentHalaqa');
+        select.innerHTML = '<option value="">اختر الحلقة</option>';
+        
+        halaqas.forEach(h => {
+            const option = document.createElement('option');
+            option.value = h._id;
+            option.textContent = h.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+async function loadStudents() {
+    try {
+        const res = await fetch(`${API}/students`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const students = await res.json();
+        
+        document.getElementById('loading').style.display = 'none';
+        
+        const list = document.getElementById('studentsList');
+        list.innerHTML = '';
+        
+        students.forEach(student => {
+            const progress = student.memorization?.overallProgress || 0;
+            const pagesCount = student.memorization?.totalPagesMemorized || 0;
+            const surahsCount = student.memorization?.totalSurahsMemorized || 0;
+            
+            const card = document.createElement('div');
+            card.className = 'student-card';
+            card.innerHTML = `
+                <h3>${student.name}</h3>
+                <p>العمر: ${student.age} سنة</p>
+                <p>الحلقة: ${student.halaqa?.name || 'غير محدد'}</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                <p>التقدم: ${progress}%</p>
+                <p>الصفحات: ${pagesCount}/604 | السور: ${surahsCount}/114</p>
+                <button class="btn btn-view" onclick="viewStudent('${student._id}')">
+                    عرض التفاصيل 👁️
+                </button>
+            `;
+            list.appendChild(card);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('loading').textContent = 'حدث خطأ في التحميل';
+    }
+}
+
+async function loadStatistics() {
+    try {
+        const res = await fetch(`${API}/statistics`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const stats = await res.json();
+        
+        document.getElementById('totalStudents').textContent = stats.totalStudents;
+        document.getElementById('completedHifz').textContent = stats.completedHifz;
+        document.getElementById('averageProgress').textContent = stats.averageProgress + '%';
+        document.getElementById('totalHalaqas').textContent = stats.totalHalaqas;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// إضافة هذه الدالة في ملف teacher.html بدلاً من الدالة الحالية viewStudent
+
+async function viewStudent(studentId) {
+    try {
+        // عرض رسالة تحميل
+        const modal = document.getElementById('studentModal');
+        modal.style.display = 'block';
+        document.getElementById('modalStudentName').textContent = 'جاري التحميل...';
+        document.getElementById('modalStudentInfo').textContent = 'يرجى الانتظار';
+        
+        const res = await fetch(`${API}/students/${studentId}/memorization`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || 'فشل تحميل البيانات');
+        }
+        
+        const data = await res.json();
+        
+        // التحقق من وجود البيانات المطلوبة
+        if (!data.memorization || !data.memorization.pages || data.memorization.pages.length === 0) {
+            throw new Error('بيانات القرآن غير مهيأة للطالب');
+        }
+        
+        currentViewingStudent = { id: studentId, data: data };
+        
+        document.getElementById('modalStudentName').textContent = data.student.name;
+        document.getElementById('modalStudentInfo').textContent = 
+            `العمر: ${data.student.age} | الحلقة: ${data.student.halaqa?.name || 'غير محدد'}`;
+        
+        displayModalPages(data);
+        displayModalSurahs(data);
+        displayModalJuzs(data);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        
+        // محاولة تهيئة البيانات إذا كانت غير موجودة
+        if (error.message.includes('بيانات القرآن غير مهيأة')) {
+            if (confirm('بيانات القرآن غير مهيأة لهذا الطالب. هل تريد تهيئتها الآن؟')) {
+                await initializeStudentData(studentId);
+                return;
+            }
+        }
+        
+        alert('حدث خطأ في تحميل تفاصيل الطالب: ' + error.message);
+        closeModal();
+    }
+}
+
+// دالة جديدة لتهيئة بيانات الطالب
+async function initializeStudentData(studentId) {
+    try {
+        const modal = document.getElementById('studentModal');
+        modal.style.display = 'block';
+        document.getElementById('modalStudentName').textContent = 'جاري تهيئة البيانات...';
+        document.getElementById('modalStudentInfo').textContent = 'يرجى الانتظار، قد تستغرق هذه العملية بضع ثوان';
+        
+        const res = await fetch(`${API}/students/${studentId}/initialize`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) {
+            throw new Error('فشل تهيئة البيانات');
+        }
+        
+        alert('تم تهيئة بيانات القرآن بنجاح!');
+        
+        // إعادة تحميل البيانات
+        await viewStudent(studentId);
+        await loadStudents();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('حدث خطأ في تهيئة البيانات: ' + error.message);
+        closeModal();
+    }
+}
+
+// تحسين دالة displayModalPages لمعالجة البيانات المفقودة
+function displayModalPages(data) {
+    try {
+        if (!data.memorization || !data.memorization.pages) {
+            throw new Error('بيانات الصفحات غير موجودة');
+        }
+        
+        const pagesCount = data.memorization.pages.filter(p => p.isMemorized).length;
+        document.getElementById('modalPagesCount').textContent = pagesCount;
+        
+        const pagesList = document.getElementById('modalPagesList');
+        pagesList.innerHTML = '';
+        
+        data.memorization.pages.forEach(page => {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = `page-item ${page.isMemorized ? 'memorized' : ''}`;
+            pageDiv.onclick = () => toggleStudentPage(currentViewingStudent.id, page.pageNumber, !page.isMemorized);
+            pageDiv.textContent = page.pageNumber;
+            
+            pagesList.appendChild(pageDiv);
+        });
+    } catch (error) {
+        console.error('Error in displayModalPages:', error);
+        const pagesList = document.getElementById('modalPagesList');
+        pagesList.innerHTML = '<p style="text-align: center; color: red;">خطأ في عرض الصفحات</p>';
+    }
+}
+
+// تحسين دالة displayModalSurahs
+function displayModalSurahs(data) {
+    try {
+        if (!data.memorization || !data.memorization.surahs) {
+            throw new Error('بيانات السور غير موجودة');
+        }
+        
+        const surahCount = data.memorization.surahs.filter(s => s.isMemorized).length;
+        document.getElementById('modalSurahCount').textContent = surahCount;
+        
+        const surahList = document.getElementById('modalSurahList');
+        surahList.innerHTML = '';
+        
+        data.memorization.surahs.forEach(surah => {
+            const surahPages = data.memorization.pages.filter(p => p.surahNumber === surah.surahNumber);
+            const memorizedPages = surahPages.filter(p => p.isMemorized).length;
+            
+            const surahDiv = document.createElement('div');
+            surahDiv.className = `surah-item-modal ${surah.isMemorized ? 'memorized' : ''}`;
+            surahDiv.onclick = () => toggleStudentSurah(currentViewingStudent.id, surah.surahNumber, !surah.isMemorized);
+            
+            surahDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>${surah.surahNumber}. ${surah.surahName}</strong>
+                        <br>
+                        <small>${memorizedPages}/${surahPages.length} صفحة</small>
+                    </div>
+                    <div style="font-size: 1.3em;">
+                        ${surah.isMemorized ? '✓' : '○'}
+                    </div>
+                </div>
+            `;
+            
+            surahList.appendChild(surahDiv);
+        });
+    } catch (error) {
+        console.error('Error in displayModalSurahs:', error);
+        const surahList = document.getElementById('modalSurahList');
+        surahList.innerHTML = '<p style="text-align: center; color: red;">خطأ في عرض السور</p>';
+    }
+}
+
+// تحسين دالة displayModalJuzs
+function displayModalJuzs(data) {
+    try {
+        if (!data.memorization || !data.memorization.juzs) {
+            throw new Error('بيانات الأجزاء غير موجودة');
+        }
+        
+        const juzCount = data.memorization.juzs.filter(j => j.isMemorized).length;
+        document.getElementById('modalJuzCount').textContent = juzCount;
+        
+        const juzList = document.getElementById('modalJuzList');
+        juzList.innerHTML = '';
+        
+        data.memorization.juzs.forEach(juz => {
+            const juzDiv = document.createElement('div');
+            juzDiv.className = `juz-item-modal ${juz.isMemorized ? 'completed' : ''}`;
+            juzDiv.onclick = () => toggleStudentJuz(currentViewingStudent.id, juz.juzNumber, !juz.isMemorized);
+            
+            juzDiv.innerHTML = `
+                <div style="font-size: 1.5em; margin-bottom: 5px;">${juz.juzNumber}</div>
+                <div style="font-size: 0.85em;">
+                    ${juz.isMemorized ? '✓ مكتمل' : juz.progress + '%'}
+                </div>
+            `;
+            
+            juzList.appendChild(juzDiv);
+        });
+    } catch (error) {
+        console.error('Error in displayModalJuzs:', error);
+        const juzList = document.getElementById('modalJuzList');
+        juzList.innerHTML = '<p style="text-align: center; color: red;">خطأ في عرض الأجزاء</p>';
+    }
+}
+function displayModalPages(data) {
+    const pagesCount = data.memorization.pages.filter(p => p.isMemorized).length;
+    document.getElementById('modalPagesCount').textContent = pagesCount;
+    
+    const pagesList = document.getElementById('modalPagesList');
+    pagesList.innerHTML = '';
+    
+    data.memorization.pages.forEach(page => {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = `page-item ${page.isMemorized ? 'memorized' : ''}`;
+        pageDiv.onclick = () => toggleStudentPage(currentViewingStudent.id, page.pageNumber, !page.isMemorized);
+        pageDiv.textContent = page.pageNumber;
+        pageDiv.title = `صفحة ${page.pageNumber} - اضغط للتبديل`;
+        
+        pagesList.appendChild(pageDiv);
+    });
+}
+
+function displayModalSurahs(data) {
+    const surahCount = data.memorization.surahs.filter(s => s.isMemorized).length;
+    document.getElementById('modalSurahCount').textContent = surahCount;
+    
+    const surahList = document.getElementById('modalSurahList');
+    surahList.innerHTML = '';
+    
+    data.memorization.surahs.forEach(surah => {
+        const surahPages = data.memorization.pages.filter(p => p.surahNumber === surah.surahNumber);
+        const memorizedPages = surahPages.filter(p => p.isMemorized).length;
+        
+        const surahDiv = document.createElement('div');
+        surahDiv.className = `surah-item-modal ${surah.isMemorized ? 'memorized' : ''}`;
+        surahDiv.onclick = () => toggleStudentSurah(currentViewingStudent.id, surah.surahNumber, !surah.isMemorized);
+        surahDiv.title = 'اضغط للتبديل';
+        
+        surahDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>${surah.surahNumber}. ${surah.surahName}</strong>
+                    <br>
+                    <small>${memorizedPages}/${surahPages.length} صفحة</small>
+                </div>
+                <div style="font-size: 1.3em;">
+                    ${surah.isMemorized ? '✓' : '○'}
+                </div>
+            </div>
+        `;
+        
+        surahList.appendChild(surahDiv);
+    });
+}
+
+function displayModalJuzs(data) {
+    const juzCount = data.memorization.juzs.filter(j => j.isMemorized).length;
+    document.getElementById('modalJuzCount').textContent = juzCount;
+    
+    const juzList = document.getElementById('modalJuzList');
+    juzList.innerHTML = '';
+    
+    data.memorization.juzs.forEach(juz => {
+        const juzDiv = document.createElement('div');
+        juzDiv.className = `juz-item-modal ${juz.isMemorized ? 'completed' : ''}`;
+        juzDiv.onclick = () => toggleStudentJuz(currentViewingStudent.id, juz.juzNumber, !juz.isMemorized);
+        juzDiv.title = 'اضغط للتبديل';
+        
+        juzDiv.innerHTML = `
+            <div style="font-size: 1.5em; margin-bottom: 5px;">${juz.juzNumber}</div>
+            <div style="font-size: 0.85em;">
+                ${juz.isMemorized ? '✓ مكتمل' : juz.progress + '%'}
+            </div>
+        `;
+        
+        juzList.appendChild(juzDiv);
+    });
+}
+
+async function toggleStudentPage(studentId, pageNumber, isMemorized) {
+    try {
+        const res = await fetch(`${API}/students/${studentId}/page/${pageNumber}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isMemorized })
+        });
+        
+        if (!res.ok) throw new Error('فشل تحديث الحالة');
+        
+        // إعادة تحميل بيانات الطالب
+        await viewStudent(studentId);
+        await loadStudents();
+        await loadStatistics();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('حدث خطأ في تحديث حالة الصفحة');
+    }
+}
+
+async function toggleStudentSurah(studentId, surahNumber, isMemorized) {
+    if (!confirm(`هل تريد تحديد السورة ${surahNumber} ${isMemorized ? 'كمحفوظة' : 'كغير محفوظة'}؟`)) {
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API}/students/${studentId}/surah/${surahNumber}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isMemorized })
+        });
+        
+        if (!res.ok) throw new Error('فشل تحديث الحالة');
+        
+        await viewStudent(studentId);
+        await loadStudents();
+        await loadStatistics();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('حدث خطأ في تحديث حالة السورة');
+    }
+}
+
+async function toggleStudentJuz(studentId, juzNumber, isMemorized) {
+    if (!confirm(`هل تريد تحديد الجزء ${juzNumber} ${isMemorized ? 'كمكتمل' : 'كغير مكتمل'}؟\nسيتم تحديث جميع صفحات الجزء.`)) {
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API}/students/${studentId}/juz/${juzNumber}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isMemorized })
+        });
+        
+        if (!res.ok) throw new Error('فشل تحديث الجزء');
+        
+        await viewStudent(studentId);
+        await loadStudents();
+        await loadStatistics();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('حدث خطأ في تحديث الجزء');
+    }
+}
+
+function switchModalTab(tab) {
+    // تحديث التبويبات
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // إخفاء/إظهار المحتوى
+    document.getElementById('modalPagesTab').classList.toggle('hidden', tab !== 'pages');
+    document.getElementById('modalSurahsTab').classList.toggle('hidden', tab !== 'surahs');
+    document.getElementById('modalJuzsTab').classList.toggle('hidden', tab !== 'juzs');
+}
+
+function closeModal() {
+    document.getElementById('studentModal').style.display = 'none';
+    currentViewingStudent = null;
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('studentModal');
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+document.getElementById('halaqaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('halaqaName').value;
+    
+    try {
+        const res = await fetch(`${API}/halaqas`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name })
+        });
+        
+        if (!res.ok) throw new Error('فشل إضافة الحلقة');
+        
+        alert('تم إضافة الحلقة بنجاح!');
+        document.getElementById('halaqaForm').reset();
+        await loadData();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+document.getElementById('studentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('studentName').value;
+    const age = parseInt(document.getElementById('studentAge').value);
+    const halaqaId = document.getElementById('studentHalaqa').value;
+    
+    try {
+        const res = await fetch(`${API}/students`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, age, halaqaId })
+        });
+        
+        if (!res.ok) throw new Error('فشل إضافة الطالب');
+        
+        alert('تم إضافة الطالب بنجاح!');
+        document.getElementById('studentForm').reset();
+        await loadData();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+function logout() {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'teacher-login.html';
+    }
+}
+</script>
+
+</body>
+</html>

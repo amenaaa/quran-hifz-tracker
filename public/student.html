@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الطالب</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; font-size: 1.8em; }
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover { opacity: 0.9; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label { color: #666; margin-top: 5px; font-size: 0.9em; }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.3s ease;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .surah-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .surah-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .surah-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .surah-item.memorized {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+        }
+        .surah-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .surah-number {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        .surah-name {
+            font-size: 1.3em;
+            margin: 5px 0;
+        }
+        .surah-info {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .check-icon {
+            font-size: 2em;
+            color: #28a745;
+            display: none;
+        }
+        .surah-item.memorized .check-icon {
+            display: block;
+        }
+        .juz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+        }
+        .juz-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .juz-item:hover { transform: scale(1.05); }
+        .juz-item.completed {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+        }
+        .juz-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .juz-item.completed .juz-number { color: #28a745; }
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .page-item {
+            background: #f8f9fa;
+            padding: 15px 10px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .page-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        .page-item.memorized {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            color: #28a745;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 30px auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 1000px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover { color: black; }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        .hidden { display: none; }
+        .btn-toggle-all {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            margin: 10px 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="welcomeText">مرحباً 👋</h1>
+        <button class="btn" onclick="logout()">تسجيل الخروج 🚪</button>
+    </header>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number" id="totalPages">0</div>
+            <div class="stat-label">صفحة محفوظة</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="totalSurahs">0</div>
+            <div class="stat-label">سورة محفوظة</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="totalJuzs">0</div>
+            <div class="stat-label">جزء مكتمل</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="overallProgress">0%</div>
+            <div class="stat-label">نسبة الإنجاز</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+        </div>
+        <p id="progressText">ابدأ رحلتك في حفظ القرآن الكريم</p>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('pages')">الصفحات (604)</div>
+        <div class="tab" onclick="switchTab('surahs')">السور (114)</div>
+        <div class="tab" onclick="switchTab('juzs')">الأجزاء (30)</div>
+    </div>
+    
+    <div class="card">
+        <!-- الصفحات -->
+        <div id="pagesTab">
+            <h2>الصفحات (604 صفحة)</h2>
+            <input type="text" class="search-box" id="searchPages" placeholder="🔍 ابحث عن رقم صفحة...">
+            <div class="loading" id="loadingPages">جاري التحميل...</div>
+            <div class="pages-grid" id="pagesList"></div>
+        </div>
+        
+        <!-- السور -->
+        <div id="surahsTab" class="hidden">
+            <h2>السور (114 سورة)</h2>
+            <input type="text" class="search-box" id="searchSurahs" placeholder="🔍 ابحث عن سورة...">
+            <div class="loading" id="loadingSurahs">جاري التحميل...</div>
+            <div class="surah-grid" id="surahsList"></div>
+        </div>
+        
+        <!-- الأجزاء -->
+        <div id="juzsTab" class="hidden">
+            <h2>الأجزاء الثلاثون</h2>
+            <div class="loading" id="loadingJuzs">جاري التحميل...</div>
+            <div class="juz-grid" id="juzsList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal لعرض صفحات الجزء -->
+<div id="juzModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeJuzModal()">&times;</span>
+        <h2 id="modalJuzTitle"></h2>
+        <p id="modalJuzInfo"></p>
+        <button class="btn btn-toggle-all" onclick="toggleAllJuzPages(true)">✓ تحديد الكل</button>
+        <button class="btn btn-toggle-all" style="background: #dc3545;" onclick="toggleAllJuzPages(false)">✗ إلغاء الكل</button>
+        <div class="pages-grid" id="modalJuzPages"></div>
+    </div>
+</div>
+
+<!-- Modal لعرض صفحات السورة -->
+<div id="surahModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeSurahModal()">&times;</span>
+        <h2 id="modalSurahTitle"></h2>
+        <p id="modalSurahInfo"></p>
+        <div class="pages-grid" id="modalSurahPages"></div>
+    </div>
+</div>
+
+<script>
+// تحديد API URL تلقائياً حسب البيئة
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
+let currentStudent = null;
+let allPages = [];
+let allSurahs = [];
+let allJuzs = [];
+let currentJuzNumber = null;
+let token = localStorage.getItem('token');
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    
+    if (!token || !user || user.role !== 'student') {
+        alert('الرجاء تسجيل الدخول كطالب');
+        window.location.href = 'student-login.html';
+        return;
+    }
+    
+    document.getElementById('welcomeText').textContent = `مرحباً ${user.name} 👋`;
+    await loadStudentData();
+});
+
+async function loadStudentData() {
+    try {
+        const res = await fetch(`${API}/students/my-profile`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error('فشل تحميل البيانات');
+        
+        currentStudent = await res.json();
+        
+        if (!currentStudent.memorization || !currentStudent.memorization.pages || currentStudent.memorization.pages.length === 0) {
+            await initializeQuran();
+            await loadStudentData();
+            return;
+        }
+        
+        allPages = currentStudent.memorization.pages;
+        allSurahs = currentStudent.memorization.surahs;
+        allJuzs = currentStudent.memorization.juzs;
+        
+        updateStatistics();
+        displayPages();
+        displaySurahs();
+        displayJuzs();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('حدث خطأ في تحميل البيانات');
+    }
+}
+
+async function initializeQuran() {
+    try {
+        await fetch(`${API}/students/initialize-quran`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function updateStatistics() {
+    if (!currentStudent || !currentStudent.memorization) return;
+    
+    const stats = currentStudent.memorization;
+    
+    document.getElementById('totalPages').textContent = stats.totalPagesMemorized || 0;
+    document.getElementById('totalSurahs').textContent = stats.totalSurahsMemorized || 0;
+    document.getElementById('totalJuzs').textContent = stats.totalJuzsMemorized || 0;
+    document.getElementById('overallProgress').textContent = (stats.overallProgress || 0) + '%';
+    
+    const progress = stats.overallProgress || 0;
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('progressBar').textContent = progress + '%';
+    
+    const progressText = document.getElementById('progressText');
+    const pagesMemorized = stats.totalPagesMemorized || 0;
+    
+    if (progress === 0) {
+        progressText.textContent = 'ابدأ رحلتك في حفظ القرآن الكريم';
+    } else if (progress < 25) {
+        progressText.textContent = `بداية موفقة! حفظت ${pagesMemorized} صفحة 🌱`;
+    } else if (progress < 50) {
+        progressText.textContent = `ربع الطريق! ${pagesMemorized} صفحة محفوظة 📖`;
+    } else if (progress < 75) {
+        progressText.textContent = `نصف الطريق! ${pagesMemorized} صفحة - أنت بطل 🌟`;
+    } else if (progress < 100) {
+        progressText.textContent = `قريب من الختم! ${pagesMemorized}/604 صفحة 🚀`;
+    } else {
+        progressText.textContent = 'مبارك! أتممت حفظ القرآن الكريم 🎉';
+    }
+}
+
+function displayPages() {
+    const pagesList = document.getElementById('pagesList');
+    const loadingPages = document.getElementById('loadingPages');
+    
+    loadingPages.style.display = 'none';
+    pagesList.innerHTML = '';
+    
+    allPages.forEach(page => {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = `page-item ${page.isMemorized ? 'memorized' : ''}`;
+        pageDiv.onclick = () => togglePage(page.pageNumber);
+        pageDiv.textContent = page.pageNumber;
+        pageDiv.title = `صفحة ${page.pageNumber}`;
+        
+        pagesList.appendChild(pageDiv);
+    });
+}
+
+function displaySurahs() {
+    const surahsList = document.getElementById('surahsList');
+    const loadingSurahs = document.getElementById('loadingSurahs');
+    
+    loadingSurahs.style.display = 'none';
+    surahsList.innerHTML = '';
+    
+    allSurahs.forEach(surah => {
+        const surahDiv = document.createElement('div');
+        surahDiv.className = `surah-item ${surah.isMemorized ? 'memorized' : ''}`;
+        surahDiv.onclick = () => viewSurahPages(surah.surahNumber);
+        
+        const surahPages = allPages.filter(p => p.surahNumber === surah.surahNumber);
+        const memorizedPages = surahPages.filter(p => p.isMemorized).length;
+        
+        surahDiv.innerHTML = `
+            <div class="surah-header">
+                <div class="surah-number">${surah.surahNumber}</div>
+                <div class="check-icon">✓</div>
+            </div>
+            <div class="surah-name">${surah.surahName}</div>
+            <div class="surah-info">
+                الجزء ${surah.juzNumber} | ${memorizedPages}/${surahPages.length} صفحة
+            </div>
+        `;
+        
+        surahsList.appendChild(surahDiv);
+    });
+}
+
+function displayJuzs() {
+    const juzsList = document.getElementById('juzsList');
+    const loadingJuzs = document.getElementById('loadingJuzs');
+    
+    if (!currentStudent.memorization || !currentStudent.memorization.juzs) return;
+    
+    loadingJuzs.style.display = 'none';
+    juzsList.innerHTML = '';
+    
+    allJuzs.forEach(juz => {
+        const juzDiv = document.createElement('div');
+        juzDiv.className = `juz-item ${juz.isMemorized ? 'completed' : ''}`;
+        juzDiv.onclick = () => viewJuzPages(juz.juzNumber);
+        
+        juzDiv.innerHTML = `
+            <div class="juz-number">${juz.juzNumber}</div>
+            <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                ${juz.isMemorized ? '✓ مكتمل' : juz.progress + '%'}
+            </div>
+        `;
+        
+        juzsList.appendChild(juzDiv);
+    });
+}
+
+async function togglePage(pageNumber) {
+    const page = allPages.find(p => p.pageNumber === pageNumber);
+    if (!page) return;
+    
+    const newStatus = !page.isMemorized;
+    
+    try {
+        const res = await fetch(`${API}/students/toggle-page/${pageNumber}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isMemorized: newStatus })
+        });
+        
+        if (!res.ok) throw new Error('فشل تحديث الحالة');
+        
+        const updatedStudent = await res.json();
+        currentStudent = updatedStudent;
+        allPages = updatedStudent.memorization.pages;
+        allSurahs = updatedStudent.memorization.surahs;
+        allJuzs = updatedStudent.memorization.juzs;
+        
+        updateStatistics();
+        displayPages();
+        displaySurahs();
+        displayJuzs();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('حدث خطأ في تحديث الحالة');
+    }
+}
+
+async function viewJuzPages(juzNumber) {
+    currentJuzNumber = juzNumber;
+    const juzPages = allPages.filter(p => p.juzNumber === juzNumber);
+    const juzInfo = allJuzs.find(j => j.juzNumber === juzNumber);
+    const memorizedCount = juzPages.filter(p => p.isMemorized).length;
+    
+    document.getElementById('modalJuzTitle').textContent = `الجزء ${juzNumber}`;
+    document.getElementById('modalJuzInfo').textContent = 
+        `الصفحات: ${juzInfo.startPage} - ${juzInfo.endPage} | محفوظ: ${memorizedCount}/${juzPages.length} صفحة`;
+    
+    const modalPages = document.getElementById('modalJuzPages');
+    modalPages.innerHTML = '';
+    
+    juzPages.forEach(page => {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = `page-item ${page.isMemorized ? 'memorized' : ''}`;
+        pageDiv.onclick = () => togglePage(page.pageNumber);
+        pageDiv.textContent = page.pageNumber;
+        
+        modalPages.appendChild(pageDiv);
+    });
+    
+    document.getElementById('juzModal').style.display = 'block';
+}
+
+async function toggleAllJuzPages(isMemorized) {
+    if (!currentJuzNumber) return;
+    
+    try {
+        const res = await fetch(`${API}/students/toggle-juz/${currentJuzNumber}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isMemorized })
+        });
+        
+        if (!res.ok) throw new Error('فشل تحديث الجزء');
+        
+        const updatedStudent = await res.json();
+        currentStudent = updatedStudent;
+        allPages = updatedStudent.memorization.pages;
+        allSurahs = updatedStudent.memorization.surahs;
+        allJuzs = updatedStudent.memorization.juzs;
+        
+        updateStatistics();
+        displayPages();
+        displaySurahs();
+        displayJuzs();
+        viewJuzPages(currentJuzNumber);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('حدث خطأ في تحديث الجزء');
+    }
+}
+
+function viewSurahPages(surahNumber) {
+    const surahPages = allPages.filter(p => p.surahNumber === surahNumber);
+    const surahInfo = allSurahs.find(s => s.surahNumber === surahNumber);
+    const memorizedCount = surahPages.filter(p => p.isMemorized).length;
+    
+    document.getElementById('modalSurahTitle').textContent = `${surahInfo.surahName}`;
+    document.getElementById('modalSurahInfo').textContent = 
+        `السورة ${surahNumber} | الصفحات: ${surahInfo.startPage} - ${surahInfo.endPage} | محفوظ: ${memorizedCount}/${surahPages.length} صفحة`;
+    
+    const modalPages = document.getElementById('modalSurahPages');
+    modalPages.innerHTML = '';
+    
+    surahPages.forEach(page => {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = `page-item ${page.isMemorized ? 'memorized' : ''}`;
+        pageDiv.onclick = () => togglePage(page.pageNumber);
+        pageDiv.textContent = page.pageNumber;
+        
+        modalPages.appendChild(pageDiv);
+    });
+    
+    document.getElementById('surahModal').style.display = 'block';
+}
+
+function closeJuzModal() {
+    document.getElementById('juzModal').style.display = 'none';
+    currentJuzNumber = null;
+}
+
+function closeSurahModal() {
+    document.getElementById('surahModal').style.display = 'none';
+}
+
+document.getElementById('searchPages').addEventListener('input', (e) => {
+    const searchTerm = e.target.value;
+    const filteredPages = allPages.filter(p => p.pageNumber.toString().includes(searchTerm));
+    
+    const pagesList = document.getElementById('pagesList');
+    pagesList.innerHTML = '';
+    
+    filteredPages.forEach(page => {
+        const pageDiv = document.createElement('div');
+        pageDiv.className = `page-item ${page.isMemorized ? 'memorized' : ''}`;
+        pageDiv.onclick = () => togglePage(page.pageNumber);
+        pageDiv.textContent = page.pageNumber;
+        
+        pagesList.appendChild(pageDiv);
+    });
+});
+
+document.getElementById('searchSurahs').addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredSurahs = allSurahs.filter(s => 
+        s.surahName.includes(searchTerm) || s.surahNumber.toString().includes(searchTerm)
+    );
+    
+    const surahsList = document.getElementById('surahsList');
+    surahsList.innerHTML = '';
+    
+    filteredSurahs.forEach(surah => {
+        const surahDiv = document.createElement('div');
+        surahDiv.className = `surah-item ${surah.isMemorized ? 'memorized' : ''}`;
+        surahDiv.onclick = () => viewSurahPages(surah.surahNumber);
+        
+        const surahPages = allPages.filter(p => p.surahNumber === surah.surahNumber);
+        const memorizedPages = surahPages.filter(p => p.isMemorized).length;
+        
+        surahDiv.innerHTML = `
+            <div class="surah-header">
+                <div class="surah-number">${surah.surahNumber}</div>
+                <div class="check-icon">✓</div>
+            </div>
+            <div class="surah-name">${surah.surahName}</div>
+            <div class="surah-info">
+                الجزء ${surah.juzNumber} | ${memorizedPages}/${surahPages.length} صفحة
+            </div>
+        `;
+        
+        surahsList.appendChild(surahDiv);
+    });
+});
+
+function switchTab(tab) {
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById('pagesTab').classList.toggle('hidden', tab !== 'pages');
+    document.getElementById('surahsTab').classList.toggle('hidden', tab !== 'surahs');
+    document.getElementById('juzsTab').classList.toggle('hidden', tab !== 'juzs');
+}
+
+function logout() {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'student-login.html';
+    }
+}
+</script>
+
+</body>
+</html>

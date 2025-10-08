@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول الطالب</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #00f2fe;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .error { background: #fee; color: #c00; display: block; }
+        .success { background: #efe; color: #0c0; display: block; }
+        .toggle {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .toggle a {
+            color: #00f2fe;
+            text-decoration: none;
+        }
+        .back {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .back a {
+            color: #999;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎓 تسجيل دخول الطالب</h1>
+    
+    <div id="message" class="message"></div>
+    
+    <form id="loginForm">
+        <h3 style="text-align: center; margin-bottom: 20px;">دخول</h3>
+        
+        <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="password" required>
+        </div>
+        
+        <button type="submit">دخول</button>
+        
+        <div class="toggle">
+            <a href="#" onclick="showRegister(); return false;">إنشاء حساب جديد</a>
+        </div>
+    </form>
+    
+    <form id="registerForm" style="display: none;">
+        <h3 style="text-align: center; margin-bottom: 20px;">إنشاء حساب طالب</h3>
+        
+        <div class="form-group">
+            <label>الاسم الكامل</label>
+            <input type="text" id="regName" required>
+        </div>
+        
+        <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="regEmail" required>
+        </div>
+        
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="regPassword" required minlength="6">
+        </div>
+        
+        <button type="submit">إنشاء الحساب</button>
+        
+        <div class="toggle">
+            <a href="#" onclick="showLogin(); return false;">لديك حساب؟ سجل دخول</a>
+        </div>
+    </form>
+    
+    <div class="back">
+        <a href="index.html">← العودة للرئيسية</a>
+    </div>
+</div>
+
+<script>
+// تحديد API URL تلقائياً حسب البيئة
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
+
+function showRegister() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('message').style.display = 'none';
+}
+
+function showLogin() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+}
+
+function showMessage(text, isError) {
+    const msg = document.getElementById('message');
+    msg.textContent = text;
+    msg.className = 'message ' + (isError ? 'error' : 'success');
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+        const res = await fetch(`${API}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.message);
+        if (data.user.role !== 'student') throw new Error('هذا الحساب ليس حساب طالب');
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        showMessage('تم تسجيل الدخول بنجاح!', false);
+        setTimeout(() => window.location.href = 'student.html', 1000);
+        
+    } catch (error) {
+        showMessage(error.message, true);
+    }
+});
+
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    
+    try {
+        const res = await fetch(`${API}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, role: 'student' })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.message);
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        showMessage('تم إنشاء الحساب بنجاح!', false);
+        setTimeout(() => window.location.href = 'student.html', 1000);
+        
+    } catch (error) {
+        showMessage(error.message, true);
+    }
+});
+
+if (localStorage.getItem('token')) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role === 'student') {
+        window.location.href = 'student.html';
+    }
+}
+</script>
+
+</body>
+</html>
