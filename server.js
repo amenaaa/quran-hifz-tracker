@@ -143,7 +143,291 @@ app.post("/api/halaqas", authenticate, authorizeTeacher, async (req, res) => {
         res.status(500).json({ message: "حدث خطأ", error: error.message });
     }
 });
+// ==================== AUTH ROUTES - UPDATED ====================
 
+// تحديث تسجيل المستخدمين لإضافة username
+app.post("/api/auth/register", async (req, res) => {
+    try {
+        const { name, username, email, password, role } = req.body;
+
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({ message: "جميع الحقول مطلوبة" });
+        }
+
+        // التحقق من وجود البريد الإلكتروني
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+            return res.status(400).json({ message: "البريد الإلكتروني مسجل مسبقاً" });
+        }
+
+        // التحقق من وجود اسم المستخدم إذا تم إدخاله
+        if (username) {
+            const existingUsername = await User.findOne({ username });
+            if (existingUsername) {
+                return res.status(400).json({ message: "اسم المستخدم مستخدم بالفعل" });
+            }
+        }
+
+        const user = new User({ name, username, email, password, role });
+        await user.save();
+
+        const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: "30d" });
+
+        res.status(201).json({
+            message: "تم إنشاء الحساب بنجاح",
+            token,
+            user: { id: user._id, name: user.name, username: user.username, email: user.email, role: user.role }
+        });
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
+
+// تحديث تسجيل الدخول للسماح باستخدام username أو email
+app.post("/api/auth/login", async (req, res) => {
+    try {
+        const { usernameOrEmail, email, password } = req.body;
+        
+        // للتوافق مع الكود القديم
+        const identifier = usernameOrEmail || email;
+
+        if (!identifier || !password) {
+            return res.status(400).json({ message: "يرجى إدخال اسم المستخدم/البريد وكلمة المرور" });
+        }
+
+        // البحث عن المستخدم باستخدام username أو email
+        const user = await User.findOne({
+            $or: [
+                { email: identifier },
+                { username: identifier }
+            ]
+        });
+
+        if (!user) {
+            return res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
+        }
+
+        const isPasswordValid = await user.comparePassword(password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
+        }
+
+        const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: "30d" });
+
+        res.json({
+            message: "تم تسجيل الدخول بنجاح",
+            token,
+            user: { 
+                id: user._id, 
+                name: user.name, 
+                username: user.username,
+                email: user.email, 
+                role: user.role, 
+                studentProfile: user.studentProfile 
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
+
+// ==================== HALAQA ROUTES - UPDATED ====================
+
+// حذف حلقة
+app.delete("/api/halaqas/:id", authenticate, authorizeTeacher, async (req, res) => {
+    try {
+        const halaqa = await Halaqa.findById(req.params.id);
+        
+        if (!halaqa) {
+            return res.status(404).json({ message: "الحلقة غير موجودة" });
+        }
+
+        // التحقق من أن المعلم هو مالك الحلقة
+        const teacherHalaqas = req.user.managedHalaqas.map(h => h.toString());
+        if (!teacherHalaqas.includes(req.params.id)) {
+            return res.status(403).json({ message: "ليس لديك صلاحية حذف هذه الحلقة" });
+        }
+
+        // حذف الحلقة من الطلاب
+        await Student.updateMany(
+            { halaqa: req.params.id },
+            { $unset: { halaqa: "" } }
+        );
+
+        // حذف الحلقة من المعلم
+        await User.findByIdAndUpdate(
+            req.user._id,
+            { $pull: { managedHalaqas: req.params.id } }
+        );
+
+        // حذف الحلقة
+        await Halaqa.findByIdAndDelete(req.params.id);
+
+        res.json({ message: "تم حذف الحلقة بنجاح" });
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
+
+// تعديل حلقة
+app.put("/api/halaqas/:id", authenticate, authorizeTeacher, async (req, res) => {
+    try {
+        const { name } = req.body;
+        
+        if (!name) {
+            return res.status(400).json({ message: "اسم الحلقة مطلوب" });
+        }
+
+        const halaqa = await Halaqa.findById(req.params.id);
+        
+        if (!halaqa) {
+            return res.status(404).json({ message: "الحلقة غير موجودة" });
+        }
+
+        // التحقق من أن المعلم هو مالك الحلقة
+        const teacherHalaqas = req.user.managedHalaqas.map(h => h.toString());
+        if (!teacherHalaqas.includes(req.params.id)) {
+            return res.status(403).json({ message: "ليس لديك صلاحية تعديل هذه الحلقة" });
+        }
+
+        halaqa.name = name;
+        await halaqa.save();
+
+        res.json(halaqa);
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
+
+// ==================== STUDENT ROUTES - UPDATED ====================
+
+// حذف طالب
+app.delete("/api/students/:id", authenticate, authorizeTeacher, async (req, res) => {
+    try {
+        const student = await Student.findById(req.params.id);
+        
+        if (!student) {
+            return res.status(404).json({ message: "الطالب غير موجود" });
+        }
+
+        // التحقق من أن الطالب في حلقة المعلم
+        if (student.halaqa) {
+            const teacherHalaqas = req.user.managedHalaqas.map(h => h.toString());
+            if (!teacherHalaqas.includes(student.halaqa.toString())) {
+                return res.status(403).json({ message: "ليس لديك صلاحية حذف هذا الطالب" });
+            }
+        }
+
+        // حذف الطالب من الحلقة
+        if (student.halaqa) {
+            await Halaqa.findByIdAndUpdate(
+                student.halaqa,
+                { $pull: { students: req.params.id } }
+            );
+        }
+
+        // حذف الطالب
+        await Student.findByIdAndDelete(req.params.id);
+
+        res.json({ message: "تم حذف الطالب بنجاح" });
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
+
+// تعديل معلومات الطالب
+app.put("/api/students/:id", authenticate, authorizeTeacher, async (req, res) => {
+    try {
+        const { name, age, halaqaId } = req.body;
+        
+        const student = await Student.findById(req.params.id);
+        
+        if (!student) {
+            return res.status(404).json({ message: "الطالب غير موجود" });
+        }
+
+        // التحقق من أن الطالب في حلقة المعلم
+        if (student.halaqa) {
+            const teacherHalaqas = req.user.managedHalaqas.map(h => h.toString());
+            if (!teacherHalaqas.includes(student.halaqa.toString())) {
+                return res.status(403).json({ message: "ليس لديك صلاحية تعديل هذا الطالب" });
+            }
+        }
+
+        // تحديث الحلقة القديمة إذا تغيرت
+        if (halaqaId && halaqaId !== student.halaqa?.toString()) {
+            // حذف من الحلقة القديمة
+            if (student.halaqa) {
+                await Halaqa.findByIdAndUpdate(
+                    student.halaqa,
+                    { $pull: { students: req.params.id } }
+                );
+            }
+            
+            // إضافة للحلقة الجديدة
+            await Halaqa.findByIdAndUpdate(
+                halaqaId,
+                { $addToSet: { students: req.params.id } }
+            );
+            
+            student.halaqa = halaqaId;
+        }
+
+        if (name) student.name = name;
+        if (age) student.age = age;
+
+        await student.save();
+
+        const populatedStudent = await Student.findById(student._id).populate("halaqa");
+        res.json(populatedStudent);
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
+
+// البحث عن الطلاب
+app.get("/api/students/search", authenticate, authorizeTeacher, async (req, res) => {
+    try {
+        const { query } = req.query;
+        
+        if (!query) {
+            return res.status(400).json({ message: "يرجى إدخال نص للبحث" });
+        }
+
+        // الحصول على طلاب المعلم فقط
+        const halaqas = await Halaqa.find({ _id: { $in: req.user.managedHalaqas } });
+        const studentIds = halaqas.flatMap(h => h.students);
+
+        const students = await Student.find({
+            _id: { $in: studentIds },
+            name: { $regex: query, $options: 'i' }
+        }).populate("halaqa");
+
+        res.json(students);
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
+
+// البحث عن الحلقات
+app.get("/api/halaqas/search", authenticate, authorizeTeacher, async (req, res) => {
+    try {
+        const { query } = req.query;
+        
+        if (!query) {
+            return res.status(400).json({ message: "يرجى إدخال نص للبحث" });
+        }
+
+        const halaqas = await Halaqa.find({
+            _id: { $in: req.user.managedHalaqas },
+            name: { $regex: query, $options: 'i' }
+        }).populate("students");
+
+        res.json(halaqas);
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+});
 // ==================== STUDENT ROUTES ====================
 
 app.get("/api/students", authenticate, async (req, res) => {
