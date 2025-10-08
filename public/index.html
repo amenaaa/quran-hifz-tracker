@@ -7,31 +7,52 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            padding: 20px;
         }
         .container {
             background: white;
-            border-radius: 30px;
+            border-radius: 25px;
             padding: 50px 40px;
             max-width: 600px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         h1 {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            
-            font-size: 2.5em;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.8em;
             margin-bottom: 10px;
+            font-weight: bold;
         }
-        .subtitle { color: #666; margin-bottom: 40px; }
-        .icon-large { font-size: 4em; margin-bottom: 20px; }
+        .icon-large { 
+            font-size: 5em; 
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .subtitle { 
+            color: #666; 
+            margin-bottom: 40px; 
+            font-size: 1.1em;
+        }
         .features {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -39,26 +60,82 @@
             margin: 40px 0;
         }
         .feature {
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-            padding: 20px;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            padding: 25px;
             border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        .feature-icon { font-size: 2em; }
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(17, 153, 142, 0.3);
+        }
+        .feature-icon { 
+            font-size: 2.5em; 
+            margin-bottom: 10px;
+        }
+        .feature-text {
+            color: #2e7d32;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
         button {
             width: 100%;
             padding: 20px;
             margin: 10px 0;
             border: none;
             border-radius: 15px;
-            font-size: 1.3em;
+            font-size: 1.4em;
             color: white;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
         }
-        button:hover { transform: translateY(-5px); }
-        .teacher-btn { background: linear-gradient(135deg, #f093fb, #f5576c); }
-        .student-btn { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-        footer { color: white; margin-top: 40px; }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        button:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .teacher-btn { 
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+        .student-btn { 
+            background: linear-gradient(135deg, #0f9b0f, #5cd65c);
+        }
+        h2 {
+            color: #2e7d32;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+        footer { 
+            color: white; 
+            margin-top: 40px;
+            font-size: 0.95em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        @media (max-width: 600px) {
+            .container { padding: 30px 20px; }
+            h1 { font-size: 2em; }
+            .features { grid-template-columns: 1fr; }
+            button { font-size: 1.2em; }
+        }
     </style>
 </head>
 <body>
@@ -71,23 +148,23 @@
     <div class="features">
         <div class="feature">
             <div class="feature-icon">📊</div>
-            <div>تتبع التقدم</div>
+            <div class="feature-text">تتبع التقدم</div>
         </div>
         <div class="feature">
             <div class="feature-icon">🎯</div>
-            <div>أهداف واضحة</div>
+            <div class="feature-text">أهداف واضحة</div>
         </div>
         <div class="feature">
             <div class="feature-icon">⭐</div>
-            <div>إنجازات مميزة</div>
+            <div class="feature-text">إنجازات مميزة</div>
         </div>
         <div class="feature">
             <div class="feature-icon">👥</div>
-            <div>إدارة الحلقات</div>
+            <div class="feature-text">إدارة الحلقات</div>
         </div>
     </div>
 
-    <h2 style="color: #555; margin-bottom: 20px;">اختر دورك</h2>
+    <h2>اختر دورك</h2>
     <button class="teacher-btn" onclick="window.location.href='teacher-login.html'">
         👨‍🏫 معلم
     </button>
